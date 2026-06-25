@@ -1,6 +1,8 @@
 # Distill
 
-**A Claude Code skill that turns vague, messy, or under-specified requests into clear, efficient AI-ready instructions — while preserving your intent.**
+![License](https://img.shields.io/badge/license-MIT-blue) ![Agents](https://img.shields.io/badge/agents-11_supported-6e40c9) ![Dependencies](https://img.shields.io/badge/dependencies-none-brightgreen) ![Trigger](https://img.shields.io/badge/trigger-%2Fdistill-orange)
+
+**Turns vague, messy, or under-specified AI requests into clear, efficient instructions — while preserving your intent.**
 
 Use it on-demand, or run it always-on. Either way, if your request is already clear, Distill does nothing.
 
@@ -12,7 +14,51 @@ Use it on-demand, or run it always-on. Either way, if your request is already cl
 
 ---
 
-## Install
+## ⚡ How it works
+
+Before solving, Distill evaluates the request and picks one of five modes automatically:
+
+```mermaid
+flowchart TD
+    A([User request]) --> B{--raw prefix?}
+    B -- yes --> Z([Pass through unchanged])
+    B -- no --> C{Evaluate request}
+    C --> D{Already clear\nand simple?}
+    D -- yes --> E([🟢 Pass-through\nProceed without rewriting])
+    D -- no --> F{Noisy input —\nlogs, diffs, output?}
+    F -- yes --> G([🗜️ Compression\nExtract signal only])
+    F -- no --> H{Missing context\nchanges the answer?}
+    H -- yes --> I([❓ Context-seeking\nAsk minimum needed])
+    H -- no --> J{Complex, multi-step,\nor high-risk?}
+    J -- yes --> K([📋 Structured distill\nFull execution brief])
+    J -- no --> L([✏️ Light distill\nClarify, remove noise])
+```
+
+### Task profiles
+
+Distill applies a different lens depending on what you're doing:
+
+| Profile | Distills toward |
+|---|---|
+| 🐛 **Debugging** | Observed vs expected, root cause, minimal fix, verification step |
+| 🔨 **Code implementation** | Feature goal, affected areas, edge cases, acceptance criteria |
+| ♻️ **Refactor** | Behavior preservation, boundaries, risk areas, diff focus |
+| 🏗️ **Architecture / design** | Trade-offs, constraints, recommended path, migration plan |
+| ✍️ **Writing / communication** | Audience, tone, key message, constraints, desired length |
+| 📚 **Learning / explanation** | Knowledge level, depth, examples only where useful |
+| 🔍 **Research / comparison** | Criteria, options, freshness, sourced recommendation |
+
+### Restraint rules
+
+- No fake expertise, fake citations, or invented context
+- No clarifying questions unless missing information actually changes the result
+- No framework added unless the task needs it
+- No rewriting the user's actual deliverable unless asked
+- Pass-through when the request is already good
+
+---
+
+## 🚀 Install
 
 ### One line — auto-detects your agents
 
@@ -99,7 +145,7 @@ For agents that support `SKILL.md` format directly, copy the full file (includin
 
 ---
 
-## Why this is different
+## 🆚 Why this is different
 
 Most prompt optimizer tools always do something — they rewrite every prompt, even clear ones. Distill has a genuine **pass-through mode**: when the request is already good, it proceeds without touching it.
 
@@ -120,39 +166,7 @@ Combined with **task-type profiles** (debugging vs refactoring vs architecture v
 
 ---
 
-## How it works
-
-Before solving, Distill evaluates the request and picks one of five modes automatically:
-
-| Mode | When used |
-|---|---|
-| **Pass-through** | Request is already clear — proceeds without rewriting |
-| **Light distill** | Slightly vague or wordy — clarifies objective, removes noise |
-| **Structured distill** | Complex, multi-step, or high-risk — adds a full execution brief |
-| **Context-seeking** | Missing context would change the answer — asks the minimum needed |
-| **Compression** | Noisy logs, diffs, or pasted output — extracts signal only |
-
-### Task profiles
-
-- **Debugging** — observed vs expected behavior, root cause, minimal fix, verification step
-- **Code implementation** — feature goal, affected areas, edge cases, acceptance criteria
-- **Refactor** — behavior preservation, boundaries, risk areas, diff focus
-- **Architecture / design** — trade-offs, constraints, recommended path, migration plan
-- **Writing / communication** — audience, tone, key message, length
-- **Learning / explanation** — knowledge level, depth, examples only where useful
-- **Research / comparison** — criteria, options, freshness, sourced recommendation
-
-### Restraint rules
-
-- No fake expertise, fake citations, or invented context
-- No clarifying questions unless missing information actually changes the result
-- No framework added unless the task needs it
-- No rewriting the user's actual deliverable unless asked
-- Pass-through when the request is already good
-
----
-
-## Benchmark
+## 📊 Benchmark
 
 Local prompt-readiness benchmark, 2026-06-25.
 
@@ -171,43 +185,36 @@ Method: 10 realistic requests from `distill-test-plan.md` were scored twice: onc
 | Already-clear coding request | 38 | 38 | 0% |
 | Vague failing-tests request | 20 | 35 | +75% |
 
-Summary:
-
-| Metric | Raw | Distill |
-|---|---:|---:|
-| Total score | 237/400 | 358/400 |
-| Average per task | 23.7/40 | 35.8/40 |
-| Average quality | 59% | 90% |
-| Overall lift | - | +51% |
+**Overall: 59% → 90% average quality (+51% lift)**
 
 Where Distill helped most:
 
-- Ambiguous coding work: turned "fix this bug" and "fix failing tests" into inspect-first, minimal-fix, verify-after workflows.
-- High-risk advice: avoided overconfident answers and added constraint/safety handling.
-- Noisy inputs: extracted the actionable signal instead of reacting to the whole paste.
-- Clear prompts: passed through without meaningful expansion.
+- **Ambiguous coding work** — turned "fix this bug" and "fix failing tests" into inspect-first, minimal-fix, verify-after workflows
+- **High-risk advice** — avoided overconfident answers and added constraint/safety handling
+- **Noisy inputs** — extracted the actionable signal instead of reacting to the whole paste
+- **Clear prompts** — passed through without meaningful expansion
 
 Limit: this benchmark measures prompt/request quality before execution, not independent downstream model success. Use `distill-test-plan.md` to reproduce the benchmark across multiple agents and real coding tasks.
 
 ### Live example: debugging the installer
 
-**Raw request:** "the installer doesn't always work"
+**Raw request:** `"the installer doesn't always work"`
 
-**Without distill** — a reasonable baseline response scans the full script defensively, adds `set -eu`, wraps detection lines in `|| true` guards, touches the `mktemp` call and CLAUDE.md write path speculatively, and adds a vague retry comment. Result: 8 locations changed, 2 of which address real bugs, 6 of which are unnecessary defensive changes with no confirmed trigger.
+> **Without distill** — scanned the full script defensively: added `set -eu`, wrapped detection lines in `|| true` guards, touched `mktemp` and CLAUDE.md write path speculatively, added a vague retry comment. Result: 8 locations changed, 2 addressing real bugs, **6 unnecessary**.
 
-**With distill** — the Debugging profile identifies this as a missing-context case and narrows focus: inspect auto-detect for false positives, inspect curl for silent failures, inspect `skill_body()` for cross-platform issues. Result: 3 targeted fixes, each addressing a confirmed bug:
+> **With distill** — Debugging profile identified this as missing-context: inspect auto-detect for false positives, inspect curl for silent failures, inspect `skill_body()` for cross-platform issues. Result: 3 targeted fixes, each confirmed:
 
 | Bug | Root cause | Fix |
 |---|---|---|
 | Antigravity false positive | `[ -d ~/.gemini/config ]` matches all Gemini CLI users | Changed to `[ -d ~/.gemini/antigravity ]` only |
-| Silent curl failure | `set -e` exits without a message on network error | Wrapped curl in `if !` with a user-facing error message |
-| CRLF frontmatter strip | `awk` pattern `/^---$/` misses Windows line endings | Added `\r?` to delimiter and `gsub(/\r$/,"")` to output |
+| Silent curl failure | `set -e` exits without a message on network error | Wrapped curl in `if !` with a user-facing error |
+| CRLF frontmatter strip | `awk` `/^---$/` misses Windows line endings | Added `\r?` and `gsub(/\r$/,"")` |
 
-Lines changed: **18 with distill vs 31 baseline**. Real bugs fixed: **3 vs 2**. Unnecessary changes: **0 vs 6**.
+**18 lines changed vs 31 · 3 real bugs fixed vs 2 · 0 unnecessary changes vs 6**
 
 ---
 
-## Examples
+## 💡 Examples
 
 **Compress noisy logs**
 ```
@@ -230,12 +237,12 @@ Identifies missing constraints, proposes a phased plan, flags what should stay v
 
 ---
 
-## Files
+## 📁 Files
 
 | File | Purpose |
 |---|---|
 | `distill.skill.md` | The skill — installed as `~/.claude/skills/distill/SKILL.md` |
-| `install.sh` | One-line installer for Claude Code |
+| `install.sh` | One-line installer for 11 agents |
 | `distill-test-plan.md` | Before/after methodology to measure Distill's impact |
 
 ---
