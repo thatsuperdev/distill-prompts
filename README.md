@@ -20,99 +20,80 @@ Use it on-demand, or run it always-on. Either way, if your request is already cl
 curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/install.sh | bash
 ```
 
-Detects which agents are installed (Claude Code, Codex CLI, Gemini CLI, Antigravity) and installs for all of them automatically.
+Detects which agents are installed and installs for all of them in one pass. Idempotent — safe to run again.
 
 ### Install for a specific agent
 
 ```bash
-# Claude Code only
 curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/install.sh | bash -s -- --claude
-
-# Codex CLI only
 curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/install.sh | bash -s -- --codex
-
-# Gemini CLI only
+curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/install.sh | bash -s -- --cline
+curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/install.sh | bash -s -- --kilo
+curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/install.sh | bash -s -- --amp
+curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/install.sh | bash -s -- --opencode
 curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/install.sh | bash -s -- --gemini
-
-# Antigravity only
 curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/install.sh | bash -s -- --antigravity
+curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/install.sh | bash -s -- --continue
+curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/install.sh | bash -s -- --windsurf
+curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/install.sh | bash -s -- --aider
 
-# All agents regardless of detection
+# Install for all agents regardless of detection
 curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/install.sh | bash -s -- --all
 ```
 
-### What each install does
+### What gets installed where
 
-| Agent | Skill location | Trigger |
+| Agent | Install location | Trigger |
 |---|---|---|
 | Claude Code | `~/.claude/skills/distill/SKILL.md` + CLAUDE.md entry | `/distill` |
-| Codex CLI | appends to `~/.codex/AGENTS.md` | `distill this:` |
+| Codex CLI | appended to `~/.codex/AGENTS.md` | `distill this:` |
+| Cline | `~/.cline/skills/distill/SKILL.md` | `/distill` |
+| KiloCode | `~/.kilo/skills/distill/SKILL.md` | `/distill` |
+| Amp | `~/.amp/skills/distill/SKILL.md` | `/distill` |
+| OpenCode | `~/.config/opencode/skills/distill/SKILL.md` | `/distill` |
 | Gemini CLI | `~/.gemini/skills/distill/SKILL.md` | `distill this:` |
 | Antigravity | `~/.gemini/config/skills/distill/SKILL.md` | `/distill` |
+| Continue.dev | `~/.continue/rules/distill.md` | active automatically |
+| Windsurf | appended to `~/.windsurf/rules/global_rules.md` | `distill this:` |
+| Aider | `~/.aider.distill.md` + `~/.aider.conf.yml` entry | loaded every session |
+| **Cursor** | **manual** — paste into Settings → Rules for AI | `distill this:` |
 
 ### Always-on mode
 
-After installing, add this block to `~/.claude/CLAUDE.md` (Claude Code) or the top of your agent's config file:
+After installing, add this block to `~/.claude/CLAUDE.md` (Claude Code) or your agent's equivalent global config:
 
 ```markdown
 # distill (always-on)
-Before answering any request, silently apply Distill using the skill at `~/.claude/skills/distill/SKILL.md`.
+Before answering any request, silently apply Distill using the installed Distill skill.
 Choose the appropriate mode (pass-through, light, structured, context-seeking, or compression) based on the request.
 Skip distill and proceed directly if the user prefixes their message with `--raw`.
 ```
 
-To turn off always-on: remove that block. The `/distill` skill stays available.
+To turn off always-on: remove that block. The `/distill` trigger stays available.
 
-To skip a single request: prefix with `--raw`.
+To skip a single request in always-on mode: prefix with `--raw`.
 
 ```
 --raw just tell me what this function returns
 ```
 
-### Manual install
+### Cursor (manual)
+
+Cursor's global rules are managed in the IDE, not a file. To add Distill:
+
+1. Open Cursor → Settings → Rules for AI
+2. Paste the body of `distill.skill.md` (everything below the `---` frontmatter block)
+
+Trigger with `distill this:` in any prompt.
+
+### Manual install for any other system
 
 <details>
-<summary>Expand for step-by-step</summary>
+<summary>Expand</summary>
 
-**Claude Code**
+Paste the body of `distill.skill.md` (below the `---` frontmatter) into your system prompt, custom instructions, or agent config file. Prefix requests with `distill this:` to invoke it explicitly.
 
-```bash
-mkdir -p ~/.claude/skills/distill
-curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/distill.skill.md \
-  -o ~/.claude/skills/distill/SKILL.md
-```
-
-Add to `~/.claude/CLAUDE.md`:
-
-```markdown
-# distill
-- **distill** (`~/.claude/skills/distill/SKILL.md`) — converts vague requests into clear AI-ready instructions. Trigger: `/distill`
-When the user types `/distill`, invoke the Skill tool with `skill: "distill"` before doing anything else.
-```
-
-**Codex CLI**
-
-Append the body of `distill.skill.md` (below the `---` frontmatter) to `~/.codex/AGENTS.md`. Prefix requests with `distill this:`.
-
-**Gemini CLI**
-
-```bash
-mkdir -p ~/.gemini/skills/distill
-curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/distill.skill.md \
-  -o ~/.gemini/skills/distill/SKILL.md
-```
-
-**Antigravity**
-
-```bash
-mkdir -p ~/.gemini/config/skills/distill
-curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/distill.skill.md \
-  -o ~/.gemini/config/skills/distill/SKILL.md
-```
-
-**Any other system**
-
-Paste the body of `distill.skill.md` into your system prompt or custom instructions. Prefix requests with `distill this:`.
+For agents that support `SKILL.md` format directly, copy the full file (including frontmatter) to the agent's global skills directory.
 
 </details>
 
