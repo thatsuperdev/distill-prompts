@@ -103,6 +103,7 @@ curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/i
 | Windsurf | appended to `~/.windsurf/rules/global_rules.md` | `distill this:` |
 | Aider | `~/.aider.distill.md` + `~/.aider.conf.yml` entry | loaded every session |
 | **Cursor** | **manual** — paste into Settings → Rules for AI | `distill this:` |
+| **Claude desktop app** | **manual** — use `skill-creator` in Claude Cowork | `/distill` |
 
 ### Always-on mode
 
@@ -131,6 +132,23 @@ Cursor's global rules are managed in the IDE, not a file. To add Distill:
 2. Paste the body of `distill.skill.md` (everything below the `---` frontmatter block)
 
 Trigger with `distill this:` in any prompt.
+
+### Claude desktop app (manual)
+
+The Claude desktop app uses Claude Cowork's skill system — account-scoped, not file-based. The one-line installer cannot reach it.
+
+To add Distill:
+
+1. Open the Claude desktop app and start a new chat
+2. Invoke `skill-creator` (it's in your installed skills)
+3. Paste the body of `distill.skill.md` when prompted — copy it with:
+
+```bash
+awk 'NR==1&&/^---$/{skip=1;next} skip&&/^---$/{skip=0;next} !skip' \
+  ~/.claude/skills/distill/SKILL.md | pbcopy
+```
+
+Trigger with `/distill` once created.
 
 ### Manual install for any other system
 
