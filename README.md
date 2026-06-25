@@ -82,6 +82,7 @@ curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/i
 curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/install.sh | bash -s -- --continue
 curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/install.sh | bash -s -- --windsurf
 curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/install.sh | bash -s -- --aider
+curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/install.sh | bash -s -- --claude-desktop
 
 # Install for all agents regardless of detection
 curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/install.sh | bash -s -- --all
@@ -103,7 +104,7 @@ curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/i
 | Windsurf | appended to `~/.windsurf/rules/global_rules.md` | `distill this:` |
 | Aider | `~/.aider.distill.md` + `~/.aider.conf.yml` entry | loaded every session |
 | **Cursor** | **manual** — paste into Settings → Rules for AI | `distill this:` |
-| **Claude desktop app** | **manual** — use `skill-creator` in Claude Cowork | `/distill` |
+| **Claude desktop app** | guided — copies to clipboard, opens app, runs `skill-creator` | `/distill` |
 
 ### Always-on mode
 
@@ -133,20 +134,15 @@ Cursor's global rules are managed in the IDE, not a file. To add Distill:
 
 Trigger with `distill this:` in any prompt.
 
-### Claude desktop app (manual)
+### Claude desktop app
 
-The Claude desktop app uses Claude Cowork's skill system — account-scoped, not file-based. The one-line installer cannot reach it.
-
-To add Distill:
-
-1. Open the Claude desktop app and start a new chat
-2. Invoke `skill-creator` (it's in your installed skills)
-3. Paste the body of `distill.skill.md` when prompted — copy it with:
+The Claude desktop app uses Claude Cowork's account-scoped skill system. The installer handles the prep work — it copies the skill content to your clipboard and opens the app:
 
 ```bash
-awk 'NR==1&&/^---$/{skip=1;next} skip&&/^---$/{skip=0;next} !skip' \
-  ~/.claude/skills/distill/SKILL.md | pbcopy
+curl -fsSL https://raw.githubusercontent.com/eternalsayed/distill-prompts/main/install.sh | bash -s -- --claude-desktop
 ```
+
+Then in Claude desktop: start a new chat, type `skill-creator`, and paste (⌘V) when it asks for the skill content. Name it `distill`.
 
 Trigger with `/distill` once created.
 

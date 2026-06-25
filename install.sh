@@ -25,6 +25,7 @@ CONTINUE_RULES_DIR="${HOME}/.continue/rules"
 WINDSURF_RULES_DIR="${HOME}/.windsurf/rules"
 AIDER_CONVENTIONS="${HOME}/.aider.distill.md"
 AIDER_CONF="${HOME}/.aider.conf.yml"
+CLAUDE_DESKTOP_APP_DIR="${HOME}/Library/Application Support/Claude"
 
 # ── Flags ─────────────────────────────────────────────────────────────────────
 INSTALL_CLAUDE=false
@@ -38,6 +39,7 @@ INSTALL_ANTIGRAVITY=false
 INSTALL_CONTINUE=false
 INSTALL_WINDSURF=false
 INSTALL_AIDER=false
+INSTALL_CLAUDE_DESKTOP=false
 AUTO=true
 
 usage() {
@@ -57,6 +59,7 @@ usage() {
   echo "  --continue       Continue.dev"
   echo "  --windsurf       Windsurf"
   echo "  --aider          Aider"
+  echo "  --claude-desktop Claude desktop app (guided — uses skill-creator)"
   echo ""
   echo "  --help           show this message"
 }
@@ -73,12 +76,13 @@ for arg in "$@"; do
     --antigravity) INSTALL_ANTIGRAVITY=true; AUTO=false ;;
     --continue)    INSTALL_CONTINUE=true;    AUTO=false ;;
     --windsurf)    INSTALL_WINDSURF=true;    AUTO=false ;;
-    --aider)       INSTALL_AIDER=true;       AUTO=false ;;
+    --aider)          INSTALL_AIDER=true;          AUTO=false ;;
+    --claude-desktop) INSTALL_CLAUDE_DESKTOP=true; AUTO=false ;;
     --all)
       INSTALL_CLAUDE=true; INSTALL_CODEX=true; INSTALL_CLINE=true
       INSTALL_KILO=true; INSTALL_AMP=true; INSTALL_OPENCODE=true
       INSTALL_GEMINI=true; INSTALL_ANTIGRAVITY=true; INSTALL_CONTINUE=true
-      INSTALL_WINDSURF=true; INSTALL_AIDER=true
+      INSTALL_WINDSURF=true; INSTALL_AIDER=true; INSTALL_CLAUDE_DESKTOP=true
       AUTO=false ;;
     --help|-h) usage; exit 0 ;;
     *) echo "Unknown flag: $arg"; usage; exit 1 ;;
@@ -98,13 +102,14 @@ if [ "$AUTO" = true ]; then
   [ -d "${HOME}/.continue" ]                                             && INSTALL_CONTINUE=true
   [ -d "${HOME}/.windsurf" ] || [ -d "${HOME}/.codeium/windsurf" ]      && INSTALL_WINDSURF=true
   command -v aider    >/dev/null 2>&1                                    && INSTALL_AIDER=true
+  [ -d "${CLAUDE_DESKTOP_APP_DIR}" ]                                     && INSTALL_CLAUDE_DESKTOP=true
 fi
 
 # Check at least one target
 NONE=true
 for flag in "$INSTALL_CLAUDE" "$INSTALL_CODEX" "$INSTALL_CLINE" "$INSTALL_KILO" \
             "$INSTALL_AMP" "$INSTALL_OPENCODE" "$INSTALL_GEMINI" "$INSTALL_ANTIGRAVITY" \
-            "$INSTALL_CONTINUE" "$INSTALL_WINDSURF" "$INSTALL_AIDER"; do
+            "$INSTALL_CONTINUE" "$INSTALL_WINDSURF" "$INSTALL_AIDER" "$INSTALL_CLAUDE_DESKTOP"; do
   [ "$flag" = true ] && NONE=false && break
 done
 if [ "$NONE" = true ]; then
@@ -272,6 +277,34 @@ install_aider() {
   echo "  Or load manually: aider --read ${AIDER_CONVENTIONS}"
 }
 
+# ── Claude desktop app ────────────────────────────────────────────────────────
+install_claude_desktop() {
+  echo "[claude-desktop]"
+  echo "  Claude desktop uses Cowork's account-scoped skill system."
+  echo "  Copying skill content to clipboard and opening the app..."
+
+  # Copy skill body (no frontmatter) to clipboard — macOS only
+  if command -v pbcopy >/dev/null 2>&1; then
+    skill_body "$TMP_SKILL" | pbcopy
+    echo "  clipboard ← skill content copied"
+  else
+    echo "  (pbcopy not available — copy the skill body manually from distill.skill.md)"
+  fi
+
+  # Open the Claude desktop app
+  if open -a "Claude" 2>/dev/null; then
+    echo "  opened Claude desktop app"
+  else
+    echo "  Could not open Claude automatically — open it manually"
+  fi
+
+  echo ""
+  echo "  In Claude, start a new chat and run:"
+  echo "    skill-creator"
+  echo "  When prompted for content, paste with ⌘V."
+  echo "  Name it 'distill' and trigger with /distill."
+}
+
 # ── Run ───────────────────────────────────────────────────────────────────────
 echo "Installing Distill..."
 echo ""
@@ -285,7 +318,8 @@ echo ""
 [ "$INSTALL_ANTIGRAVITY" = true ] && install_antigravity && echo ""
 [ "$INSTALL_CONTINUE" = true ]    && install_continue    && echo ""
 [ "$INSTALL_WINDSURF" = true ]    && install_windsurf    && echo ""
-[ "$INSTALL_AIDER" = true ]       && install_aider       && echo ""
+[ "$INSTALL_AIDER" = true ]          && install_aider          && echo ""
+[ "$INSTALL_CLAUDE_DESKTOP" = true ] && install_claude_desktop && echo ""
 
 echo "Done."
 echo ""
